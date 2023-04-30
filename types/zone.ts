@@ -7,5 +7,6 @@ export interface Zone {
 export interface ZoneRecord {
   name: string;
   id: string;
-  zone_id: string;
+  zoneId: string;
+  ip: string;
 }
