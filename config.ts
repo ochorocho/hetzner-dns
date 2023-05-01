@@ -1,10 +1,10 @@
 import * as fs from "https://deno.land/std@0.185.0/fs/mod.ts";
-import * as path from "https://deno.land/std@0.185.0/path/mod.ts";
 import * as log from "https://deno.land/std@0.185.0/log/mod.ts";
 import Logger from "./logger.ts";
 // NPM specifiers not supported yet! See https://github.com/denoland/deno/issues/15960
 import prompts from "https://esm.sh/prompts@2.4.2";
 import Ajv, { ErrorObject } from "https://esm.sh/ajv@8.6.1";
+import ConfigSchema from "./schema/config.json" assert { type: "json" };
 
 interface ConfigType {
   api: URL;
@@ -19,22 +19,20 @@ export default class Config {
   constructor() {
     this.path = Deno.env.get("HOME") + "/.hetzner/config.json";
     this.logger = new Logger("DEBUG").get();
-  }
 
-  read() {
     if (!fs.existsSync(this.path)) {
       Deno.writeTextFileSync(this.path, JSON.stringify({}, null, 2));
     }
+  }
 
+  read() {
     const decoder = new TextDecoder("utf-8");
     const data = Deno.readFileSync(this.path);
     return JSON.parse(decoder.decode(data));
   }
 
   schema() {
-    const decoder = new TextDecoder("utf-8");
-    const data = Deno.readFileSync("./schema/config.json");
-    return JSON.parse(decoder.decode(data));
+    return ConfigSchema;
   }
 
   write(config: Record<string, unknown>) {
