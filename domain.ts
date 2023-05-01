@@ -18,7 +18,7 @@ export default class Domain {
     return records;
   }
 
-  toUpdate(zoneId: string, wanted: Array<string>, records: Array<ZoneRecord>) {
+  toUpdate(wanted: Array<string>, records: Array<ZoneRecord>) {
     let updateOrCreate: Array<ZoneRecord> = [];
     wanted.forEach((subdomain) => {
       const found = records.filter((record) => subdomain === record.name);
@@ -26,7 +26,7 @@ export default class Domain {
         const zoneRecord: ZoneRecord = {
           name: subdomain,
           id: "",
-          zoneId: zoneId,
+          zoneId: this.zoneId,
           ip: "",
         };
 

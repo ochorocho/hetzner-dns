@@ -19,6 +19,11 @@ export default class Api {
     const zones = await response.json();
 
     const updateZones: Array<Zone> = [];
+
+    if(response.status !== 200) {
+        return []
+    }
+
     zones.zones.forEach((zone: Zone) => {
       const hasKeyWithSubstring = domains.some((key: string) =>
         key.includes(zone.name)
@@ -75,14 +80,14 @@ export default class Api {
       zone_id: record.zoneId
     }
 
-    this.request(`records`, "POST", payload).then((response: any) => {
+    this.request(`records`, "POST", payload).then((response: Response) => {
       if(response.status === 200) {
-        const json: any = response.json()
-        json.then((data: any) => {
+        const json = response.json()
+        json.then((data: Record<string, unknown>) => {
           if(!data.error && data.record) {
             this.logger.info(`Create '${record.name}' and set IP address to ${ipAddress}`);
           } else {
-            this.logger.error(`Failed to create '${record.name}' (${record.zoneId}) - ${data.error.message}`)
+            this.logger.error(`Failed to create '${record.name}' (${record.zoneId}) - ${data.error}`)
           }
         })
       }
@@ -100,12 +105,12 @@ export default class Api {
 
     this.request(`records/${record.id}`, "PUT", payload).then((response: Response) => {
       if(response.status === 200) {
-        const json: any = response.json()
-        json.then((data: any) => {
+        const json = response.json()
+        json.then((data: Record<string, unknown>) => {
           if(!data.error && data.record) {
             this.logger.info(`Update '${record.name}' and set IP address to ${ipAddress}`);
           } else {
-            this.logger.error(`Failed to update '${record.name}' (${record.zoneId}) - ${data.error.message}`)
+            this.logger.error(`Failed to update '${record.name}' (${record.zoneId}) - ${data.error}`)
           }
         })
       }

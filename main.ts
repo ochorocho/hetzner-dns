@@ -39,12 +39,11 @@ if (args[0] === "update") {
   const updateZones = await api.zones(settings.domains);
 
   let updateRecords: Array<ZoneRecord> = [];
-
   for (const zone of updateZones) {
     const domain = new Domain(zone.id, zone.domains);
     const wanted = domain.all();
     const allRecords = await api.records(zone.id);
-    const records = domain.toUpdate(zone.id, wanted, allRecords);
+    const records = domain.toUpdate(wanted, allRecords);
     updateRecords = [...updateRecords, ...records];
   }
 

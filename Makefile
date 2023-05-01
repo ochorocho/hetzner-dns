@@ -1,5 +1,8 @@
 all: target_folder linux_x86_64 mac_x86_64 mac_aarch64
 
+verify:
+	deno lint
+
 target_folder:
 	mkdir -p bin
 
