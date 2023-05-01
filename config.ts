@@ -19,13 +19,13 @@ export default class Config {
   constructor() {
     this.path = Deno.env.get("HOME") + "/.hetzner/config.json";
     this.logger = new Logger("DEBUG").get();
-
-    if (!fs.existsSync(this.path)) {
-      Deno.writeTextFileSync(this.path, JSON.stringify({}, null, 2));
-    }
   }
 
   read() {
+    if (!fs.existsSync(this.path)) {
+      Deno.writeTextFileSync(this.path, JSON.stringify({}, null, 2));
+    }
+
     const decoder = new TextDecoder("utf-8");
     const data = Deno.readFileSync(this.path);
     return JSON.parse(decoder.decode(data));
