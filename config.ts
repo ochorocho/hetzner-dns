@@ -1,9 +1,10 @@
 import * as fs from "https://deno.land/std@0.185.0/fs/mod.ts";
 import * as path from "https://deno.land/std@0.185.0/path/mod.ts";
+import * as log from "https://deno.land/std@0.185.0/log/mod.ts";
+import Logger from "./logger.ts";
 // NPM specifiers not supported yet! See https://github.com/denoland/deno/issues/15960
 import prompts from "https://esm.sh/prompts@2.4.2";
 import Ajv, { ErrorObject } from "https://esm.sh/ajv@8.6.1";
-import Logger from "./logger.ts";
 
 interface ConfigType {
   api: URL;
@@ -13,9 +14,11 @@ interface ConfigType {
 
 export default class Config {
   path: string;
+  logger = log
 
   constructor() {
     this.path = Deno.env.get("HOME") + "/.hetzner/config.json";
+    this.logger = new Logger("DEBUG").get();
   }
 
   read() {
@@ -37,33 +40,30 @@ export default class Config {
         Deno.writeTextFile(this.path, JSON.stringify(config, null, 2));
       });
     } catch (e) {
-      console.log(e);
+      this.logger.error(e)
     }
   }
 
   isConfigured() {
-    const logger = new Logger("DEBUG").get();
     const ajv = new Ajv({ allErrors: true });
     const validate = ajv.compile(this.schema());
 
     if (!fs.existsSync(this.path)) {
-      logger.info(
-        `ℹ️  No config file found at "${this.path}". Please run 'hetzner config'`,
-      );
+      this.logger.info(`ℹ️  No config file found at "${this.path}". Please run 'hetzner config'`,);
 
       return false;
     }
 
     const valid = validate(this.read());
     if (!valid) {
-      logger.warning("Config validation failed:");
+      this.logger.warning("Config validation failed:");
       validate.errors?.forEach((error: ErrorObject) => {
         let path = "";
         if (error.instancePath !== "") {
           path = error.instancePath.replace(/^\/|\/$/g, "") + " - ";
         }
 
-        logger.warning("* " + path + error.message);
+        this.logger.warning("* " + path + error.message);
       });
 
       return false;

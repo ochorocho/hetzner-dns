@@ -38,11 +38,18 @@ if (args[0] === "update") {
     updateRecords = [...updateRecords, ...records];
   }
 
-  console.log(updateRecords);
-
   const currentPublicIp: string = await getIP({ ipv6: false });
-  updateRecords.forEach((record: ZoneRecord) => {
-    // console.log(record.name, currentPublicIp);
+
+  updateRecords.forEach((record: ZoneRecord, index) => {
+    setTimeout(function(){
+      if (record.ip === currentPublicIp) {
+        logger.debug(`IP address for '${record.name}' (${record.ip}) did not changed. Not updating`);
+      } else if (record.ip === "") {
+        api.createRecord(record, currentPublicIp)
+      } else {
+        api.updateRecord(record, currentPublicIp)
+      }
+    }, 100 * (index + 1));
   });
 }
 

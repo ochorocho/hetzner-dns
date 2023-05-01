@@ -21,7 +21,7 @@ export default class Domain {
   toUpdate(zoneId: string, wanted: Array<string>, records: Array<ZoneRecord>) {
     let updateOrCreate: Array<ZoneRecord> = [];
     wanted.forEach((subdomain) => {
-      const found = records.filter((record) => subdomain.includes(record.name));
+      const found = records.filter((record) => subdomain === record.name);
       if (found.length === 0) {
         const zoneRecord: ZoneRecord = {
           name: subdomain,
