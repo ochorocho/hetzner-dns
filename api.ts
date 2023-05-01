@@ -92,7 +92,7 @@ export default class Api {
   updateRecord(record: ZoneRecord, ipAddress: string) {
     const payload = {
       value: ipAddress,
-      ttl: 0,
+      ttl: 60,
       type: 'A',
       name: record.name,
       zone_id: record.zoneId

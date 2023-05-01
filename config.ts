@@ -19,23 +19,26 @@ export default class Config {
   constructor() {
     this.path = Deno.env.get("HOME") + "/.hetzner/config.json";
     this.logger = new Logger("DEBUG").get();
+
+    if (!fs.existsSync(this.path)) {
+      Deno.writeTextFileSync(this.path, JSON.stringify({}, null, 2));
+    }
   }
 
   read() {
     const decoder = new TextDecoder("utf-8");
     const data = Deno.readFileSync(this.path);
-    return <ConfigType> JSON.parse(decoder.decode(data));
+    return JSON.parse(decoder.decode(data));
   }
 
   schema() {
     const decoder = new TextDecoder("utf-8");
     const data = Deno.readFileSync("./schema/config.json");
-    return <ConfigType> JSON.parse(decoder.decode(data));
+    return JSON.parse(decoder.decode(data));
   }
 
   write(config: Record<string, unknown>) {
     try {
-      fs.ensureDir(path.dirname(this.path));
       Deno.create(this.path).then(() => {
         Deno.writeTextFile(this.path, JSON.stringify(config, null, 2));
       });
@@ -47,12 +50,7 @@ export default class Config {
   isConfigured() {
     const ajv = new Ajv({ allErrors: true });
     const validate = ajv.compile(this.schema());
-
-    if (!fs.existsSync(this.path)) {
-      this.logger.info(`ℹ️  No config file found at "${this.path}". Please run 'hetzner config'`,);
-
-      return false;
-    }
+    fs.ensureFileSync(this.path)
 
     const valid = validate(this.read());
     if (!valid) {
@@ -74,28 +72,52 @@ export default class Config {
 
   ask() {
     (async () => {
+      const current = this.read()
+      const domains = current.domains || []
+
       const config = await prompts([
         {
           type: "text",
           name: "api",
           message: "API url?",
-          initial: "https://dns.hetzner.com/api/v1/",
+          initial: <string>current.api || "https://dns.hetzner.com/api/v1/",
         },
         {
           type: "password",
           name: "token",
           message: "API token?",
+          initial: current.token || "",
         },
         {
           type: "list",
           name: "domains",
           message: "List of domains to update (comma seperated)",
-          initial: "",
+          initial: domains.join(", "),
           separator: ",",
         },
       ]);
 
       this.write(config);
+    })();
+  }
+
+  addDomains() {
+    (async () => {
+      const current = this.read()
+
+      const config = await prompts([
+        {
+          type: "list",
+          name: "domains",
+          message: "Add domains to list (comma seperated)",
+          separator: ",",
+        },
+      ]);
+
+      const domains = current.domains || []
+      current.domains = [...domains, ...config.domains]
+
+      this.write(current);
     })();
   }
 }

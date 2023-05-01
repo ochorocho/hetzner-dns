@@ -4,15 +4,25 @@ import Api from "./api.ts";
 import Domain from "./domain.ts";
 import { ZoneRecord } from "./types/zone.ts";
 import { getIP } from "https://deno.land/x/get_ip/mod.ts";
+import * as fs from "https://deno.land/std@0.185.0/fs/mod.ts";
 
-const config = new Config();
 const args = Deno.args;
+const storagePath = Deno.env.get("HOME") + "/.hetzner";
+fs.ensureDirSync(storagePath);
+const config = new Config();
 
 /**
  * Run interactive configuration
  */
 if (args[0] === "config") {
   config.ask();
+}
+
+/**
+ * Add domains to existing list
+ */
+if (args[0] === "add") {
+  config.addDomains();
 }
 
 /**
@@ -57,17 +67,15 @@ if (args[0] === "update") {
  * Show command details
  */
 if (args[0] === undefined || args[0] === "--help") {
-  console.log("%cDescription:", "font-weight:bold");
-  console.log(
-    "Using Hetzner DNS console API to update the IP address of the given domain with your local public IP address\n",
-  );
+  console.log("%cDescription:", "font-weight:bold;text-decoration: underline");
+  console.log("Using Hetzner DNS console API to update the IP address of the given domain with your local public IP address\n");
   console.log("%cCommand arguments:\n", "color:green;font-weight:bold");
 
   const message = [];
   message.push("  * 'config': Run configuration");
-  message.push(
-    "  * 'update': Update IP of given domains with the current public ip address",
-  );
+  message.push("  * 'update': Update IP of given domains with the current public ip address");
+  message.push("  * 'add': Add domains to configuration");
 
   console.log(message.join("\n") + "\n");
+  console.log(`%cFiles stored in ${storagePath}`, "color:orange");
 }
